@@ -1,0 +1,10 @@
+Get the client and server
+go into the client then npm install ---> npm run
+go into the server then npm install ---> npm run
+
+
+Used Technologies
+
+Frontend - React,Material UI
+Backend - Node, Expressjs
+Database - MySql

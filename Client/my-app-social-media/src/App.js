@@ -1,11 +1,13 @@
-import { Routes, Route ,BrowserRouter } from "react-router-dom"
-import Post from './pages/Post.jsx'
-import NewPost from './pages/NewPost.jsx'
+import { Routes, Route ,BrowserRouter } from "react-router-dom";
+import Post from './pages/Post.jsx';
+import NewPost from './pages/NewPost.jsx';
+import AppBar from './Components/AppBar.js';
 
 function App() {
   return (
     <div>
       <BrowserRouter>
+      <AppBar />
         <Routes>
           <Route path="/newPost" element={ <NewPost/> } />
           <Route path="/" element={ <Post/> } />

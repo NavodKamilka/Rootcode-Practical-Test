@@ -1,13 +1,9 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import Grid from '@mui/material/Grid';
 import { Button, TextField } from '@mui/material';
+//import { useParams } from 'react-router-dom';
 import '../Style/Post.css';
-
-// import Accordion from '@mui/material/Accordion';
-// import AccordionSummary from '@mui/material/AccordionSummary';
-// import AccordionDetails from '@mui/material/AccordionDetails';
-// import Typography from '@mui/material/Typography';
-// import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import AvatarGroup from '../Components/AvatarGroup.js';
 
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -15,7 +11,80 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
+
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+
+import axios from "axios";
+
 function Post() {
+
+    // let {id} = useParams();
+
+    const [id, setId] = useState(1);
+    
+    const [post , setPost] = useState([]);
+    const [comment , setComment] = useState([]);
+
+    const [comment_des, setComment_des] = useState("");
+
+    const handleChange = (event) => {
+        setComment_des(event.target.value);
+  
+      };
+
+    const addComment = () => {
+
+        axios.post("http://localhost:4000/api/post/createComment", {
+            comment_des : comment_des,
+            post_id : id
+        })
+        .then(function (response) {
+            console.log(response);
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+    }
+
+    const fetchPost = async () => {
+        try {
+            await axios.get("http://localhost:4000/api/post/getPost")
+                .then((response) => {
+                    //console.log("Posts - ", response.data.data)
+                    setPost(response.data.data)
+                })
+                .catch((err) => {
+                    //console.log(err)
+                });
+        }catch (error) {
+            //console.log('catched->' + error)
+        }
+    }
+
+    const fetchComment = async () => {
+        try {
+            await axios.get("http://localhost:4000/api/post/" + id + "/getComment")
+                .then((response) => {
+                    console.log("Comments - ", response.data.data)
+                    setComment(response.data.data)
+                })
+                .catch((err) => {
+                    //console.log(err)
+                });
+        }catch (error) {
+            //console.log('catched->' + error)
+        }
+    }
+
+    useEffect(() => {
+
+        fetchPost();
+
+    },[]);
+
 
     const [open, setOpen] = React.useState(false);
     const [open1, setOpen1] = React.useState(false);
@@ -36,11 +105,19 @@ function Post() {
         setOpen(false);
     };
 
+    // console.log(comment);
+
   return (
     <div>
-      <Grid container spacing={2}>
+        <Grid container marginTop={3} marginLeft={-20}>
+            <Grid item xs={3}>
+            <AvatarGroup/>
+            </Grid>
+        </Grid>
+         
+      <Grid container spacing={1}>
         <Grid item xs={10}>
-            
+           
         </Grid>
         <Grid style={{marginTop:50}} item xs="auto">
             <Button href='/newPost' variant="contained">Create New Post</Button>     
@@ -48,13 +125,30 @@ function Post() {
     </Grid>
     <div className='App'>
             <div className='displayUsers'>
-            {/* {product.map((product) =>{ */}
-                    <div key="">
-                        <h1>Post Title : </h1>
-                        <h1>Post Description : </h1>
-                        <h3>dsjdsdshgdhdhsvdhsdhvhv</h3>
-                        <Button onClick={handleClickOpen1}>Add Comments</Button> <Button variant="outlined" onClick={handleClickOpen}>View Comments</Button>
+            {post.map((row) =>{
+              return <div key={row.id}>
+                        <h1>{row.post_title}</h1>
+                        <h5>{row.post_description}</h5>
+                        <Button  onClick={(e) => {setId(row.id);setOpen1(true);}}>Add Comments</Button> <Button variant="outlined" onClick={(e) => {setId(row.id);setOpen(true); fetchComment();}}>View Comments</Button>
+                        {" "}
+                            <IconButton aria-label="delete">
+                                <DeleteIcon />
+                            </IconButton>
+                            <IconButton color="secondary" aria-label="add an alarm">
+                                <ThumbUpIcon />
+                            </IconButton>
+                            <IconButton color="primary" aria-label="add to shopping cart">
+                                <ThumbDownIcon />
+                            </IconButton>
+                        
+                </div>
+            })}
+            </div>
+
+            
+    </div>
                         {/* view comment */}
+                        <div className="dialog">
                             <Dialog
                                 open={open}
                                 onClose={handleClose}
@@ -62,24 +156,24 @@ function Post() {
                                 aria-describedby="alert-dialog-description"
                             >
                                 <DialogTitle id="alert-dialog-title">
-                                {"Post Title Here"}
+                                {".........................Comment Section............................."}
                                 </DialogTitle>
                                 <DialogContent>
-                                <DialogContentText id="alert-dialog-description">
-                                    *Comment Here <br></br>
-                                    *Comment Here 
-                                </DialogContentText>
+                                {comment.map((row ,index) =>{
+                                    return <div key={index}>
+                                        <DialogContentText id="alert-dialog-description">
+                                            *{row.comment_des}<br></br>
+                                        </DialogContentText>
+                                    </div>
+                                })}
                                 </DialogContent>
                                 <DialogActions>
-                                {/* <Button onClick={handleClose}>Disagree</Button> */}
                                 <Button onClick={handleClose} autoFocus>
                                     Close
                                 </Button>
                                 </DialogActions>
                             </Dialog>
-                        {/* view comment */}
-
-                        {/* Add comment */}
+                        
                             <Dialog
                                 open={open1}
                                 onClose={handleClose1}
@@ -87,40 +181,33 @@ function Post() {
                                 aria-describedby="alert-dialog-description"
                             >
                                 <DialogTitle id="alert-dialog-title">
-                                {"Dog post Add Comments"}
+                                {"............................Add your comment here..........................."}
                                 </DialogTitle>
                                 <DialogContent>
-                                {/* <DialogContentText id="alert-dialog-description">
-                                    *Comment Here <br></br>
-                                    *Comment Here 
-                                </DialogContentText> */}
                                 <TextField
                                     sx={{ marginLeft: "", width: "100%" }}
-                                    // InputProps={{ sx: { height: 280 } }}
                                     id="outlined-basic"
                                     label="Comment"
                                     variant="outlined"
-                                    // value={petName}
-                                    // onChange={handleChange2}
+                                    value={comment_des}
+                                    onChange={handleChange}
                                 />{" "}
                                 </DialogContent>
-                                <DialogActions>
-                                <Button>Publish Comment</Button>
-                                <Button onClick={handleClose1} autoFocus>
-                                    Close
-                                </Button>
-                                </DialogActions>
+                                    <DialogActions>
+                                    <Button onClick={addComment}>Publish Comment</Button>
+                                    <Button onClick={handleClose1} autoFocus>
+                                        Close
+                                    </Button>
+                                    </DialogActions>
                             </Dialog>
 
 
+                            
 
 
-                        {/* Add comment */}
+                        </div>
+
                         
-                    </div>
-            {/* })} */}
-            </div>
-        </div>
     </div>
   )
 }
